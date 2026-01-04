@@ -45,4 +45,4 @@ pluginManagement {
 plugins {
     id 'com.wildermods.workspace'
 }
-rootProject.name = "examplemod"
+rootProject.name = "LauncherMod"

@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.wildermods.multimyth.mixin",
+	"target": "@env(DEFAULT)",
+	"compatibilityLevel": "JAVA_25",
+	"mixinPriority": 1,
+	"mixinextras": {"minVersion": "0.5.0"},
+	"mixins": [
+		"DebuggingWithLWJGLFixMixin",
+		"LegacyUIRootMixin",
+		"MainScreenMixin"
+	]
+}

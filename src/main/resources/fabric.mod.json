@@ -1,34 +1,22 @@
 {
 	"schemaVersion": 1,
-	"id":"examplemod",
+	"id":"launcher",
 	"version":"@modVersion@",
 	
-	"name":"ExampleMod",
-	"description": "An Example mod.",
+	"name":"Multimyth Launcher",
+	"description": "In game launcher",
 	"authors": [
 		"Gamebuster19901"
 	],
 	
-	"contact": {
-		"sources": "https://github.com/WilderForge/ExampleMod",
-		"issues": "https://github.com/WilderForge/ExampleMod/issues",
-		"homepage": "https://wildermods.com"
-	},
-	
 	"mixins": [
-		"examplemod.mixins.json"
+		"launcher.mixins.json",
+		"launcher.mixins.branding.json"
 	],
 	"depends":{
-		"wildermyth": ">=1.16.0",
-		"wilderforge": ">=0.4.0.0"
+		"wildermyth": "1.16.559"
 	},
 	"breaks":{
-		"wildermyth": [
-			"<1.16.0"
-		],
-		"wilderforge": [
-			"<0.4.0.0"
-		],
 		"minecraft":["*"]
 	},
 	"custom": {
@@ -37,11 +25,7 @@
 			"",
 			"[title]Programming[]",
 			"Gamebuster [discord]@Gamebuster",
-			"",
-			"",
-			"[title]Art[]",
-			"Delapouite [github]@Delapouite[] - Perspective dice 6 faces random icon (Modified)",
-			"Licenced under CC By 3.0 - https://creativecommons.org/licenses/by/3.0/"
+			""
 		]
 	}
 }

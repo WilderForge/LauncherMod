@@ -1,4 +1,4 @@
-package com.wildermods.examplemod;
+package com.wildermods.multimyth;
 
 public interface Reloadable {
 	public void reload();

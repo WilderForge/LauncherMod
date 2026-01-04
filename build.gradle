@@ -6,7 +6,7 @@ plugins {
 
 version = modVersion //To change the version of your mod, edit modVersion in gradle.properties
 group = "com.wildermods"
-base.archivesName = "examplemod"
+base.archivesName = "launcher"
 
 apply plugin: 'com.wildermods.workspace'
 apply from: 'replaceTokenScript.gradle' //see replaceTokenScript.gradle!
@@ -22,12 +22,12 @@ repositories {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
 wilderWorkspace {
-	useDependency("1.16+560-unstable")
+	useDependency("1.16+559")
 }
 
 dependencies {
@@ -37,8 +37,6 @@ dependencies {
 	 * 
 	 * To add libraries or to change the versions used, you need to modify /gradle/libs.versions.toml
 	 */
-	
-	implementation libs.wilderforge
 	
 	/**********
 	Don't alter the dependencies below.
