@@ -38,7 +38,6 @@ public class MainLauncherScreen extends Screen implements ITopLevelScreen {
 		
 		this.dataContext.disposeCachedTextures();
 		if(currentScreen != null) {
-			//TODO: recreate screen
 			this.screenManager.screenPush(currentScreen);
 		}
 	}

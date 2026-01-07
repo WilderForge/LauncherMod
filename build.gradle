@@ -37,6 +37,8 @@ dependencies {
 	 * 
 	 * To add libraries or to change the versions used, you need to modify /gradle/libs.versions.toml
 	 */
+	 
+	 nest libs.wilderforge
 	
 	/**********
 	Don't alter the dependencies below.

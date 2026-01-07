@@ -13,13 +13,13 @@ import com.worldwalkergames.logging.ALogger;
 public class MainScreenBrandingMixin {
 
 	@WrapOperation(
-		method = "before",
+		method = "*", //intended to target before() and setTitle()
 		at = @At (
 			value = "INVOKE",
 			target = "Lcom/badlogic/gdx/Graphics;setTitle(Ljava/lang/String;)V"
 		)
 	)
-	private static void setTitle(Graphics graphics, String title, Operation<Void> original) {
+	private static void overwriteTitle(Graphics graphics, String title, Operation<Void> original) {
 		original.call(graphics, "Multimyth");
 	}
 	

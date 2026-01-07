@@ -9,6 +9,10 @@
 	"mixins": [
 		"DebuggingWithLWJGLFixMixin",
 		"LegacyUIRootMixin",
-		"MainScreenMixin"
+		"MainScreenMixin",
+		"NiceButtonDefaultSkinFix",
+		"ServerDataContextVanillaFixMixin",
+		"SkinAccessor",
+		"SkinMixin"
 	]
 }
