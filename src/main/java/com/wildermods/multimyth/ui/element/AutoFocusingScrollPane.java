@@ -6,7 +6,6 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane2;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.worldwalkergames.legacy.context.LegacyViewDependencies;
 
 public class AutoFocusingScrollPane extends ScrollPane2 {
 

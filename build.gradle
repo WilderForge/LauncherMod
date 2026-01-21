@@ -9,6 +9,7 @@ group = "com.wildermods"
 base.archivesName = "launcher"
 
 apply plugin: 'com.wildermods.workspace'
+apply from: 'verifyCompilation.gradle'
 apply from: 'replaceTokenScript.gradle' //see replaceTokenScript.gradle!
 apply from: 'publishScript.gradle' //If you're not going to publish to a maven repository, you can delete this line and delete publishScript.gradle.
 
@@ -26,6 +27,46 @@ java {
 	}
 }
 
+def java8Home = javaToolchains
+    .launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+
+
+tasks.named("classes") {
+    dependsOn tasks.named("compileJava8")
+}
+
+def java8set
+sourceSets {
+    java8set = java8 {
+        java {
+            srcDirs = ['src/main/java8']
+        }
+        compileClasspath = files() + sourceSets.java8.compileClasspath
+    }
+
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+}
+
+def compileJava8 = tasks.register('compileJava8', JavaCompile) {
+	doFirst {
+		logger.lifecycle("compileJava8 using compiler: ${javaCompiler.get().metadata.installationPath.asFile}")
+	}
+    source = sourceSets.java8.java
+    destinationDirectory = file("$buildDir/classes/java/java8")
+    classpath = files() + sourceSets.java8.compileClasspath
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    })
+}
+
 wilderWorkspace {
 	useDependency("1.16+559")
 }
@@ -39,6 +80,16 @@ dependencies {
 	 */
 	 
 	 nest libs.wilderforge
+	 nest libs.thrixlvault
+	 nest libs.maven.fetcher
+	 nest libs.workspace
+	 nest libs.commons.io
+	 
+	 api libs.thrixlvault
+	 api libs.workspace
+	 api libs.commons.io
+	 
+	 java8Implementation libs.gson
 	
 	/**********
 	Don't alter the dependencies below.
@@ -50,5 +101,34 @@ dependencies {
 	compileOnly fileTree(dir: './bin/', include: ['*.jar'])
 	
 	//All dependencies of Wildermyth itself
-	compileOnly fileTree(dir: './bin/lib/', include: ['*.jar'])
+	compileOnly fileTree(dir: './bin/lib/', include: ['*.jar'], 
+		exclude: ['commons-io*'] //conflicts with current version
+	)
+}
+
+eclipse { //for some reason gradle is not adding the source set to eclipse automatically??
+	classpath {
+		sourceSets += java8set
+	}
+}
+
+tasks.compileJava {
+    dependsOn compileJava8
+
+    // Exclude java8 source files from compileJava task source
+    source = sourceSets.main.java.filter { file ->
+        !sourceSets.java8.allJava.contains(file)
+    }
+
+    // Add java8 compiled output to classpath so main can reference java8 classes
+    classpath += files(compileJava8.get().destinationDirectory)
+}
+
+tasks.classes {
+    dependsOn compileJava8
+}
+
+tasks.named("jar") {
+    dependsOn compileJava8
+    from(compileJava8.map { it.destinationDirectory })
 }

@@ -1,16 +1,13 @@
 package com.wildermods.multimyth.ui;
 
-import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.RuntimeSkin;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.worldwalkergames.legacy.context.ClientDataContext;
 import com.worldwalkergames.legacy.context.ClientDataContext.Skins;
 import com.worldwalkergames.legacy.context.GameStrings;
 import com.worldwalkergames.legacy.context.LegacyViewDependencies;

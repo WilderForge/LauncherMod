@@ -1,5 +1,7 @@
 package com.wildermods.multimyth;
 
+import com.google.gson.Gson;
+import com.wildermods.multimyth.internal.GsonHelper;
 import com.wildermods.provider.util.logging.Logger;
 import com.worldwalkergames.legacy.context.LegacyViewDependencies;
 
@@ -10,6 +12,10 @@ public class Launcher {
 	public static final String BUILT_BY = "@builtBy@".equals("@" + "builtBy" + "@") ? "DEVELOPMENT VERSION" : "@builtBy@";
 	public static final String BUILD_DATE = "@buildDate@";
 	public static final String BUILD_INFO = BUILT_BY.equals("DEVELOPMENT VERSION") ? "DEVELOPMENT_VERSION" : "built by " + BUILT_BY + " on " + BUILD_DATE;
+	public static final Gson GSON;
+	static {
+		GSON = GsonHelper.GSON_BUILDER.create();
+	}
 	
 	public static final Logger LOGGER = new Logger(Launcher.class);
 	
