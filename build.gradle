@@ -27,6 +27,13 @@ java {
 	}
 }
 
+def baseGameLibs = providers.provider {
+	fileTree(dir: "$projectDir/bin/lib", include: ['*.jar'])
+		.matching {
+			exclude { it.file.name.startsWith("commons-io") }
+		}
+}
+
 def java8Home = javaToolchains
     .launcherFor {
         languageVersion = JavaLanguageVersion.of(8)
@@ -72,12 +79,6 @@ wilderWorkspace {
 }
 
 dependencies {
-	
-	/*
-	 * Add any dependencies you need here. In this example mod, we depend on wilderforge
-	 * 
-	 * To add libraries or to change the versions used, you need to modify /gradle/libs.versions.toml
-	 */
 	 
 	 nest libs.wilderforge
 	 nest libs.thrixlvault
@@ -101,9 +102,7 @@ dependencies {
 	compileOnly fileTree(dir: './bin/', include: ['*.jar'])
 	
 	//All dependencies of Wildermyth itself
-	compileOnly fileTree(dir: './bin/lib/', include: ['*.jar'], 
-		exclude: ['commons-io*'] //conflicts with current version
-	)
+	compileOnly(files(baseGameLibs))
 }
 
 eclipse { //for some reason gradle is not adding the source set to eclipse automatically??
