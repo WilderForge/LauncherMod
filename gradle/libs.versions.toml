@@ -1,6 +1,6 @@
 [versions]
 asm_version = "9.8"
-commons_io_version = "2.20.0"
+commons_io_version = "2.21.0"
 fabric_loader_version = "0.17.2+WilderForge.0.2.1"
 fontbox_version = "3.0.5"
 freetype_version="1.13.1"
