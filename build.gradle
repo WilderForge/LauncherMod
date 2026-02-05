@@ -85,11 +85,21 @@ dependencies {
 	 nest libs.maven.fetcher
 	 nest libs.workspace
 	 nest libs.commons.io
+	 nest libs.plexus.utils
+	 nest libs.plexus.interpolation
+	 nest libs.plexus.xml
+	 nest libs.maven.core
+	 nest libs.log4j.commons.bridge
 	 
 	 api libs.wilderforge
 	 api libs.thrixlvault
 	 api libs.workspace
 	 api libs.commons.io
+	 api libs.plexus.utils
+	 api libs.plexus.interpolation
+	 api libs.plexus.xml
+	 api libs.maven.core
+	 api libs.log4j.commons.bridge
 	 
 	 java8Implementation libs.gson
 	

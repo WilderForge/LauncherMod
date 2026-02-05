@@ -8,11 +8,17 @@ gson_version = "2.13.2"
 junit_version = "6.0.2"
 junit_platform_suite_version = "6.0.2"
 log4j_version = "2.25.3"
+log4j_commons_bridge_version = "2.25.3"
 maven_fetcher_version = "1.1.1-WilderForge.1.0.3"
 mixin_version = "0.17.0+mixin.0.8.7"
 thrixlvault_version = "0.12.1.0"
 workspace_version = "6.6.4.0"
 wilderforge_version = "0.7.1.0"
+plexus_utils_version = "4.0.2"
+plexus_interpolation_version = "1.29"
+plexus_xml_version = "4.1.1"
+maven_core_version = "3.9.12"
+
 
 [libraries]
 asm = { module = "org.ow2.asm:asm", version.ref = "asm_version" }
@@ -32,8 +38,15 @@ junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref 
 junit-platform-suite = { module = "org.junit.platform:junit-platform-suite", version.ref = "junit_platform_suite_version" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j_version" }
 log4j_api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j_version" }
+log4j_commons_bridge = { module = "org.apache.logging.log4j:log4j-jcl", version.ref = "log4j_commons_bridge_version" }
 maven_fetcher = { module = "com.wildermods:maven-fetcher", version.ref = "maven_fetcher_version" }
 mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin_version" }
 thrixlvault = { module = "com.wildermods:thrixlvault", version.ref = "thrixlvault_version" }
 workspace = { module = "com.wildermods.workspace:com.wildermods.workspace.gradle.plugin", version.ref = "workspace_version" }
 wilderforge = { module = "com.wildermods:wilderforge", version.ref = "wilderforge_version" }
+
+plexus_utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus_utils_version" }
+plexus_interpolation = { module = "org.codehaus.plexus:plexus-interpolation", version.ref = "plexus_interpolation_version" }
+plexus_xml = { module = "org.codehaus.plexus:plexus-xml", version.ref = "plexus_xml_version" }
+
+maven_core = { module = "org.apache.maven:maven-core", version.ref = "maven_core_version" }
