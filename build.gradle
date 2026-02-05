@@ -86,6 +86,7 @@ dependencies {
 	 nest libs.workspace
 	 nest libs.commons.io
 	 
+	 api libs.wilderforge
 	 api libs.thrixlvault
 	 api libs.workspace
 	 api libs.commons.io
