@@ -16,6 +16,7 @@ import com.worldwalkergames.legacy.ui.Screen;
 import com.worldwalkergames.ui.NiceLabel;
 import com.worldwalkergames.ui.NiceButton;
 import com.worldwalkergames.ui.layout.CanvasGroup;
+import com.wildermods.multimyth.I18N;
 import com.wildermods.multimyth.Launcher;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
@@ -26,12 +27,10 @@ import com.wildermods.multimyth.mixin.SkinAccessor;
 public class LauncherSelectionScreen extends Screen {
 
 	private final RuntimeSkin skin;
-	private final GameStrings gameStrings;
 	
 	protected LauncherSelectionScreen(LegacyViewDependencies dependencies) {
 		super(dependencies);
 		this.skin = dependencies.skin;
-		this.gameStrings = dependencies.gameStrings;
 		dependencies.dataContext.calculateConnections(dependencies);
 	}
 	
@@ -80,51 +79,55 @@ public class LauncherSelectionScreen extends Screen {
 		
 		//mainTable.debugAll();
 		
-		NiceButton newInstanceButton = new NiceButton(gameStrings.ui("launcher.topPanel.newInstance"), skin); //TODO: fancy icon?
+		NiceButton newInstanceButton = new NiceButton(I18N.translate("multimyth.topPanel.newInstance"), skin); //TODO: fancy icon?
 		topTable.add(newInstanceButton);
-		//topTable.add(new NiceButton(gameStrings.ui("launcher.topPanel.folders"), skin));
-		//topTable.add(new NiceButton(gameStrings.ui("launcher.topPanel.settings"), skin));
-		//topTable.add(new NiceButton(gameStrings.ui("launcher.topPanel.help"), skin));
-		NiceLabel steamLabel = new NiceLabel(gameStrings.ui("launcher.topPanel.steam.notLoggedIn"), skin, "currentTurnLabel");
+		newInstanceButton.clicked.add(this, () -> {
+			NewInstancePopup newInstance = new NewInstancePopup(dependencies);
+			dependencies.popUpManager.pushFront(newInstance, true);
+		});
+		//topTable.add(new NiceButton(I18N.translate("multimyth.topPanel.folders"), skin));
+		//topTable.add(new NiceButton(I18N.translate("multimyth.topPanel.settings"), skin));
+		//topTable.add(new NiceButton(I18N.translate("multimyth.topPanel.help"), skin));
+		NiceLabel steamLabel = new NiceLabel(I18N.translate("multimyth.topPanel.steam.notLoggedIn"), skin, "currentTurnLabel");
 		steamLabel.setAlignment(Align.right);
 		topTable.add(steamLabel).expandX().fillX().align(Align.right);
 		if(SteamManager.launcherDetected && SteamManager.steamAppsInitialized()) { //TODO: periodically check if steam has been launched and user is logged in
 			SteamManagerAccessor manager = Cast.from(new SteamManager());
-			steamLabel.setText(gameStrings.ui("launcher.topPanel.steam.loggedIn", manager.getSteamFriends().getPersonaName()));
+			steamLabel.setText(I18N.translate("multimyth.topPanel.steam.loggedIn", manager.getSteamFriends().getPersonaName()));
 		}
 
 	
 		sidebarTable.defaults().fillX();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.launch"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.launch"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.edit"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.edit"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.viewMods"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.viewMods"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.screenshots"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.screenshots"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.installFolder"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.installFolder"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.configFolder"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.configFolder"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.modFolder"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.modFolder"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.shortcut"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.shortcut"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.delete"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.delete"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(gameStrings.ui("launcher.sidePanel.clone"), skin));
+		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.clone"), skin));
 		
 		String suffix;
 		NiceLabel infoLabel;
 		if(Launcher.BUILT_BY.equals("DEVELOPMENT VERSION")) {
-			suffix = gameStrings.ui("launcher.bottomPanel.buildinfo.develop");
+			suffix = I18N.translate("multimyth.bottomPanel.buildinfo.develop");
 		}
 		else {
-			suffix = gameStrings.ui("launcher.bottomPanel.buildinfo.builtby", Launcher.BUILT_BY, Launcher.BUILD_DATE);
+			suffix = I18N.translate("multimyth.bottomPanel.buildinfo.builtby", Launcher.BUILT_BY, Launcher.BUILD_DATE);
 		}
 		
-		infoLabel = new NiceLabel(gameStrings.ui("launcher.bottomPanel.version", suffix), skin, "currentTurnLabel");
+		infoLabel = new NiceLabel(I18N.translate("multimyth.bottomPanel.version", suffix), skin, "currentTurnLabel");
 		infoLabel.setAlignment(Align.bottomLeft);
 		bottomTable.add(infoLabel).align(Align.bottomLeft).padTop(10).expand().fill();
 		
