@@ -75,7 +75,7 @@ def compileJava8 = tasks.register('compileJava8', JavaCompile) {
 }
 
 wilderWorkspace {
-	useDependency("1.16+559")
+	useDependency("1.16+562")
 }
 
 dependencies {
