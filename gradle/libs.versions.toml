@@ -17,7 +17,7 @@ wilderforge_version = "0.7.1.0"
 plexus_utils_version = "4.0.2"
 plexus_interpolation_version = "1.29"
 plexus_xml_version = "4.1.1"
-maven_core_version = "3.9.12"
+maven_core_version = "3.9.14"
 
 
 [libraries]
