@@ -1,5 +1,5 @@
 [versions]
-asm_version = "9.9.1"
+asm_version = "9.10"
 commons_io_version = "2.21.0"
 fabric_loader_version = "0.18.4+WilderForge.0.3.0"
 fontbox_version = "3.0.6"
