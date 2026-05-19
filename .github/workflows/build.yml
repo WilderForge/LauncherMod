@@ -53,10 +53,10 @@ jobs:
         with:
           ref: ${{ env.COMMIT_SHA }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4.5.0
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'adopt'
 
       - name: Setup Gradle
@@ -70,6 +70,9 @@ jobs:
 
       - name: Debug PATH
         run: echo $PATH
+		
+	  - name: Prepare Game
+	    run: ./gradlew prepare
 
       - name: Setup Decompiled Workspace
         run: ./gradlew setupDecompWorkspace

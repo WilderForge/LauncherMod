@@ -4,6 +4,8 @@ plugins {
     id 'eclipse'
 }
 
+ext.gameVersion = "1.16+562"
+
 version = modVersion //To change the version of your mod, edit modVersion in gradle.properties
 group = "com.wildermods"
 base.archivesName = "launcher"
@@ -100,6 +102,9 @@ dependencies {
 	 api libs.plexus.xml
 	 api libs.maven.core
 	 api libs.log4j.commons.bridge
+	 api libs.fabric.loader
+	 
+	 api libs.vineflower
 	 
 	 java8Implementation libs.gson
 	
@@ -113,7 +118,7 @@ dependencies {
 	compileOnly fileTree(dir: './bin/', include: ['*.jar'])
 	
 	//All dependencies of Wildermyth itself
-	compileOnly(files(baseGameLibs))
+	compileOnly fileTree(dir: './bin/lib/', include: ['*.jar'])
 }
 
 eclipse { //for some reason gradle is not adding the source set to eclipse automatically??

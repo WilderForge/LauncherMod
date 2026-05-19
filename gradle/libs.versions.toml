@@ -1,7 +1,7 @@
 [versions]
 asm_version = "9.9.1"
 commons_io_version = "2.21.0"
-fabric_loader_version = "0.18.4+WilderForge.0.3.0"
+fabric_loader_version = "0.18.4+WilderForge.0.4.0+WilderForge"
 fontbox_version = "3.0.6"
 freetype_version="1.14.0"
 gson_version = "2.13.2"
@@ -12,12 +12,13 @@ log4j_commons_bridge_version = "2.25.3"
 maven_fetcher_version = "1.1.1-WilderForge.1.0.3"
 mixin_version = "0.17.0+mixin.0.8.7"
 thrixlvault_version = "0.12.1.0"
-workspace_version = "6.6.4.0"
-wilderforge_version = "0.7.1.0"
+workspace_version = "7.0.0.0"
+wilderforge_version = "0.8.0.0"
 plexus_utils_version = "4.0.2"
 plexus_interpolation_version = "1.29"
 plexus_xml_version = "4.1.1"
 maven_core_version = "3.9.12"
+vineflower_version = "1.12.0"
 
 
 [libraries]
@@ -48,5 +49,7 @@ wilderforge = { module = "com.wildermods:wilderforge", version.ref = "wilderforg
 plexus_utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus_utils_version" }
 plexus_interpolation = { module = "org.codehaus.plexus:plexus-interpolation", version.ref = "plexus_interpolation_version" }
 plexus_xml = { module = "org.codehaus.plexus:plexus-xml", version.ref = "plexus_xml_version" }
+
+vineflower = { module = "org.vineflower:vineflower", version.ref = "vineflower_version" }
 
 maven_core = { module = "org.apache.maven:maven-core", version.ref = "maven_core_version" }
