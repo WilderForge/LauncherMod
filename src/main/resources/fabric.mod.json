@@ -14,7 +14,8 @@
 		"launcher.mixins.branding.json"
 	],
 	"depends":{
-		"wildermyth": "1.16.562"
+		"wildermyth": "1.16.562",
+		"commons-io_commons-io":">=2.21.0"
 	},
 	"breaks":{
 		"minecraft":["*"]
@@ -26,6 +27,9 @@
 			"[title]Programming[]",
 			"Gamebuster [discord]@Gamebuster",
 			""
+		],
+		"wildermyth_provider:removeLib":[
+			"\\./lib/commons-io.*?\\.jar\\s*"
 		]
 	}
 }

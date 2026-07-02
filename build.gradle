@@ -31,9 +31,9 @@ java {
 
 def baseGameLibs = providers.provider {
 	fileTree(dir: "$projectDir/bin/lib", include: ['*.jar'])
-		.matching {
-			exclude { it.file.name.startsWith("commons-io") }
-		}
+		//.matching {
+		//	exclude { it.file.name.startsWith("commons-io") }
+		//}
 }
 
 def java8Home = javaToolchains
@@ -82,43 +82,50 @@ wilderWorkspace {
 
 dependencies {
 	 
+	 //REQUIRED MODS & SHADOWED DEPS
+	 api libs.wilderforge
 	 nest libs.wilderforge
+	 
+	 api libs.thrixlvault
 	 nest libs.thrixlvault
+	 
+	 api libs.maven.fetcher
 	 nest libs.maven.fetcher
+	 
+	 api libs.workspace
 	 nest libs.workspace
+	 
+	 api libs.commons.io
 	 nest libs.commons.io
+	 
+	 api libs.plexus.utils
 	 nest libs.plexus.utils
+	 
+	 api libs.plexus.interpolation
 	 nest libs.plexus.interpolation
+	 
+	 api libs.plexus.xml
 	 nest libs.plexus.xml
+	 
+	 api libs.maven.core
 	 nest libs.maven.core
+	 
+	 api libs.log4j.commons.bridge
 	 nest libs.log4j.commons.bridge
 	 
-	 api libs.wilderforge
-	 api libs.thrixlvault
-	 api libs.workspace
-	 api libs.commons.io
-	 api libs.plexus.utils
-	 api libs.plexus.interpolation
-	 api libs.plexus.xml
-	 api libs.maven.core
-	 api libs.log4j.commons.bridge
-	 api libs.fabric.loader
+	 //LOADER & INSTALLER REQUIREMENTS
+
+	 implementation libs.workspace.capabilities
+	 implementation libs.fabric.loader
 	 
-	 api libs.vineflower
+	 implementation libs.vineflower
+	 implementation libs.asm
+	 implementation libs.asm.analysis
+	 implementation libs.asm.commons
+	 implementation libs.asm.tree
+	 implementation libs.asm.util
 	 
 	 java8Implementation libs.gson
-	
-	/**********
-	Don't alter the dependencies below.
-	
-	It allows the buildscript to recognize the base game.
-	***********/
-	
-	//Wildermyth, Scratchpad
-	compileOnly fileTree(dir: './bin/', include: ['*.jar'])
-	
-	//All dependencies of Wildermyth itself
-	compileOnly fileTree(dir: './bin/lib/', include: ['*.jar'])
 }
 
 eclipse { //for some reason gradle is not adding the source set to eclipse automatically??

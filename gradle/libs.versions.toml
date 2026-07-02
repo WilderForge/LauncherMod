@@ -1,5 +1,5 @@
 [versions]
-asm_version = "9.10"
+asm_version = "9.10.1"
 commons_io_version = "2.22.0"
 fabric_loader_version = "0.18.4+WilderForge.0.4.0+WilderForge"
 fontbox_version = "3.0.7"
@@ -12,7 +12,7 @@ log4j_commons_bridge_version = "2.26.0"
 maven_fetcher_version = "1.1.1-WilderForge.1.0.3"
 mixin_version = "0.17.3+mixin.0.8.7"
 thrixlvault_version = "0.12.2.0"
-workspace_version = "7.0.0.0"
+workspace_version = "7.2.1.0"
 wilderforge_version = "0.8.0.1"
 plexus_utils_version = "4.0.3"
 plexus_interpolation_version = "1.29"
@@ -44,6 +44,7 @@ maven_fetcher = { module = "com.wildermods:maven-fetcher", version.ref = "maven_
 mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin_version" }
 thrixlvault = { module = "com.wildermods:thrixlvault", version.ref = "thrixlvault_version" }
 workspace = { module = "com.wildermods.workspace:com.wildermods.workspace.gradle.plugin", version.ref = "workspace_version" }
+workspace-capabilities = { module = "com.wildermods:workspace-capabilities", version.ref = "workspace_version" }
 wilderforge = { module = "com.wildermods:wilderforge", version.ref = "wilderforge_version" }
 
 plexus_utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus_utils_version" }
