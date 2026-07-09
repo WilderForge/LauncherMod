@@ -1,7 +1,7 @@
 package com.wildermods.multimyth.internal;
 
 import com.wildermods.wilderforge.api.mixins.v1.Cast;
-import com.worldwalkergames.legacy.LegacyDesktop;
+
 import com.worldwalkergames.legacy.integations.SteamManager;
 import com.wildermods.wilderforge.mixins.integrations.SteamManagerAccessor;
 
@@ -9,7 +9,7 @@ public class GameStateChecker {
 	
 	public static boolean gameInstanceOnClasspath() {
 		try {
-			LegacyDesktop.class.getClass();
+			//LegacyDesktop.class.getClass();
 			return true;
 		}
 		catch(Throwable t) {

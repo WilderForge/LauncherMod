@@ -33,14 +33,12 @@ import com.wildermods.thrixlvault.steam.IDownloadable;
 import com.wildermods.thrixlvault.steam.IGame;
 import com.wildermods.thrixlvault.steam.ISteamDownload;
 import com.wildermods.thrixlvault.steam.SkippedDownload;
-import com.wildermods.thrixlvault.utils.FileUtil;
 import com.wildermods.thrixlvault.wildermyth.WildermythManifest;
 import com.wildermods.workspace.WilderWorkspacePluginImpl;
 import com.wildermods.workspace.decomp.DecompilerBuilder;
 import com.wildermods.workspace.decomp.WildermythDecompilerSetup;
 import com.wildermods.workspace.dependency.ProjectDependencyType;
 import com.wildermods.workspace.dependency.WWProjectDependency;
-import com.wildermods.workspace.util.FileHelper;
 import com.worldwalkergames.legacy.integations.SteamManager;
 
 public class Installer<Game extends IDownloadable & IGame> {
@@ -141,18 +139,18 @@ public class Installer<Game extends IDownloadable & IGame> {
 			Files.createDirectories(dir);
 		}
 		
-		Path installDir = install.installableGame().getPath();
+		Path installDir = install.installableGame().getRootDir();
 		
 		Files.walkFileTree(installDir, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				Path target;
-				if(FileHelper.shouldBeRemapped(file)) {
-					target = dir.resolve("unmapped").resolve(installDir.relativize(file));
-				}
-				else {
+				//if(FileHelper.shouldBeRemapped(file)) {
+				//	target = dir.resolve("unmapped").resolve(installDir.relativize(file));
+				//}
+				//else {
 					target = dir.resolve(installDir.relativize(file));
-				}
+				//}
 				Files.createDirectories(target.getParent());
 				Files.copy(file, target, StandardCopyOption.REPLACE_EXISTING);
 				return FileVisitResult.CONTINUE;
@@ -239,9 +237,9 @@ public class Installer<Game extends IDownloadable & IGame> {
 		
 		DecompilerBuilder b = new DecompilerBuilder();
 		b.setLogger(new MultimythDecompLogger());
-		WildermythDecompilerSetup decompSetup = new WildermythDecompilerSetup(b);
-		decompSetup.decompile(compiledDir, decompDir);
-		FileUtil.deleteDirectory(decompDir.resolve("decomp"));
+		WildermythDecompilerSetup decompSetup = new WildermythDecompilerSetup(b, install, install.getCapabiltiies().scanFlatDirModules(install, Set.of(install.installPath().toFile(), install.installPath().resolve("lib").toFile())));
+		decompSetup.decompile(compiledDir);
+		//FileUtil.deleteDirectory(decompDir.resolve("decomp"));
 	}
 	
 	private void applyPatchline() {

@@ -42,10 +42,6 @@ public class GameOnDisk implements IInstall {
 		return "unknown";
 	}
 	
-	public Path getPath() {
-		return path;
-	}
-	
 	@Override
 	public String downloadBlockedReason() {
 		return "Cannot download a game version already on disk.";
@@ -59,6 +55,11 @@ public class GameOnDisk implements IInstall {
 	@Override
 	public String gameName() {
 		return WildermythManifest.GAME_NAME;
+	}
+
+	@Override
+	public Path getRootDir() {
+		return path;
 	}
 	
 }

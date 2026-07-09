@@ -1,5 +1,11 @@
 package com.wildermods.multimyth.mixin.branding;
 
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+
+import org.apache.commons.io.file.PathUtils;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,6 +42,14 @@ public class LegacyDesktopBrandingMixin {
 		}
 		else {
 			Version.PATCHLINE = "Wilderforge Org";
+		}
+		
+		try {
+			Method method = PathUtils.class.getDeclaredMethod("writeString", Path.class, CharSequence.class, Charset.class, OpenOption[].class);
+		} catch (NoSuchMethodException e) {
+			IncompatibleClassChangeError err = new IncompatibleClassChangeError();
+			err.initCause(e);
+			throw err;
 		}
 	}
 	

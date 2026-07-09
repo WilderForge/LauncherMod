@@ -4,11 +4,11 @@ plugins {
     id 'eclipse'
 }
 
-ext.gameVersion = "1.16+562"
-
 version = modVersion //To change the version of your mod, edit modVersion in gradle.properties
 group = "com.wildermods"
 base.archivesName = "launcher"
+
+ext.gameVersion = "1.16+562"
 
 apply plugin: 'com.wildermods.workspace'
 apply from: 'verifyCompilation.gradle'
@@ -18,6 +18,9 @@ apply from: 'publishScript.gradle' //If you're not going to publish to a maven r
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+    	url "https://maven.fabricmc.net/"
+    }
     maven {
         url "https://maven.wildermods.com/" //The Wilderforge API is located in a custom maven repository
     }
@@ -74,10 +77,6 @@ def compileJava8 = tasks.register('compileJava8', JavaCompile) {
     javaCompiler.set(javaToolchains.compilerFor {
         languageVersion = JavaLanguageVersion.of(8)
     })
-}
-
-wilderWorkspace {
-	useDependency("1.16+562")
 }
 
 dependencies {

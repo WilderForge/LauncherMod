@@ -103,5 +103,9 @@ public record Install<T extends IDownloadable & IGame> (int schema, T installabl
 	public boolean exists() {
 		return Files.exists(installPath) && Files.exists(getMetadataPath());
 	}
-	
+
+	@Override
+	public Path getRootDir() {
+		return installPath();
+	}
 }
