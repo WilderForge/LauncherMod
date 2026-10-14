@@ -39,6 +39,8 @@ import com.wildermods.workspace.decomp.DecompilerBuilder;
 import com.wildermods.workspace.decomp.WildermythDecompilerSetup;
 import com.wildermods.workspace.dependency.ProjectDependencyType;
 import com.wildermods.workspace.dependency.WWProjectDependency;
+import com.wildermods.workspace.dependency.VaultedDependencySpec;
+import com.wildermods.workspace.runtime.GameVariants;
 import com.worldwalkergames.legacy.integations.SteamManager;
 
 public class Installer<Game extends IDownloadable & IGame> {
@@ -124,6 +126,10 @@ public class Installer<Game extends IDownloadable & IGame> {
 			c = ChrysalisizedVault.DEFAULT.chrysalisize(manifest);
 		}
 		
+		if(install.isCoremodded()) {
+			c = GameVariants.select(ChrysalisizedVault.DEFAULT, manifest, VaultedDependencySpec.DEFAULT_VARIANT);
+		}
+
 		c.export(dir, true);
 		
 		if(install.isCoremodded()) {
