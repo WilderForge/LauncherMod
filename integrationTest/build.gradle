@@ -1,0 +1,29 @@
+// integrationTest/build.gradle
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://maven.wildermods.com/" }
+    // add any other repos needed for the game or test mods
+}
+
+dependencies {
+    // depend on the main launcher project
+    implementation project(':')  // or use :LauncherMod if root project name is set
+
+    // Add dependencies on the game and other mods (if available as artifacts)
+    // For example:
+    // implementation 'com.wildermods:game:1.16+562'
+    // implementation 'com.wildermods:some-mod:version'
+    // Or if they are local jars, use file dependencies (but that would require them to be present)
+}
+
+// Define a test task that launches the game and runs tests
+tasks.register('integrationTest', Test) {
+    // configure test task with your game-launching logic
+    // e.g., systemProperties, main class, etc.
+    useJUnitPlatform()
+}

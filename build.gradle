@@ -79,6 +79,11 @@ def compileJava8 = tasks.register('compileJava8', JavaCompile) {
     })
 }
 
+if (project.hasProperty('integration') || System.getenv('CI') != null) {
+    // If the integration test subproject is included, add a dependency
+    tasks.named('publish') { dependsOn ':integrationTest:integrationTest' }
+}
+
 dependencies {
 	 
 	 //REQUIRED MODS & SHADOWED DEPS
