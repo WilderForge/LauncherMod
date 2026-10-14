@@ -70,7 +70,7 @@ jobs:
 
       - name: Debug PATH
         run: echo $PATH
-		
+
       - name: Prepare Game
         run: ./gradlew prepare
 
