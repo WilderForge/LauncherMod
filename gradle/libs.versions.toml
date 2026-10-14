@@ -19,6 +19,7 @@ maven_core_version = "3.10.0"
 vineflower_version = "1.12.0"
 
 
+
 [libraries]
 asm = { module = "org.ow2.asm:asm", version.ref = "asm_version" }
 asm_analysis = { module = "org.ow2.asm:asm-analysis", version.ref = "asm_version" }
