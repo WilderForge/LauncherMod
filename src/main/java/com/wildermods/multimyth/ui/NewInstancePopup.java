@@ -40,6 +40,7 @@ import com.worldwalkergames.ui.NiceLabel;
 public class NewInstancePopup extends PopUp {
 	
 	private static final Logger LOGGER = LogManager.getLogger(NewInstancePopup.class);
+	private final Runnable onInstalled;
 	boolean nameEdited = false;
 	WildermythManifest selectedVersion = null;
 	TextField nameField = null;
@@ -52,7 +53,12 @@ public class NewInstancePopup extends PopUp {
 	OptionsDialog.Style style;
 	
 	public NewInstancePopup(LegacyViewDependencies dependencies) {
+		this(dependencies, () -> {});
+	}
+
+	public NewInstancePopup(LegacyViewDependencies dependencies, Runnable onInstalled) {
 		super(true, dependencies);
+		this.onInstalled = onInstalled;
 
 		masterTable = new Table();
 	}
@@ -314,6 +320,9 @@ public class NewInstancePopup extends PopUp {
 				installThread = null;
 				dependencies.popUpManager.removePopUp(downloadingWindow);
 				downloadFinish(installCancelled ? null : result);
+				if(!installCancelled && result == null) {
+					onInstalled.run();
+				}
 			});
 		}, "multimyth-instance-installer");
 		updateButtons();

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -15,19 +16,23 @@ import com.wildermods.thrixlvault.steam.IDownloadable;
 import com.wildermods.thrixlvault.steam.IGame;
 import com.wildermods.thrixlvault.wildermyth.WildermythManifest;
 
-public record Install<T extends IDownloadable & IGame> (int schema, T installableGame, Path installPath, JVMInstance java, boolean isCoremodded, boolean visible) implements IInstall {
+public record Install<T extends IDownloadable & IGame> (int schema, T installableGame, Path installPath, JVMInstance java, boolean isCoremodded, boolean visible, long lastLaunched) implements IInstall {
 
 	public static final int CURRENT_SCHEMA = 1;
 	
 	public Install(T game, Path installPath, JVMInstance java, boolean isCoremodded, boolean visible) {
 		this(CURRENT_SCHEMA, game, installPath, java, isCoremodded, visible);
 	}
+
+	public Install(int schema, T game, Path installPath, JVMInstance java, boolean isCoremodded, boolean visible) {
+		this(schema, game, installPath, java, isCoremodded, visible, System.currentTimeMillis());
+	}
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends IDownloadable & IGame> Install<T> fromFile(Path p) throws JsonParseException {
-		try {
+		try(var reader = Files.newBufferedReader(p)) {
 			Gson gson = Launcher.GSON;
-			JsonElement e = JsonParser.parseReader(gson.newJsonReader(Files.newBufferedReader(p)));
+			JsonElement e = JsonParser.parseReader(gson.newJsonReader(reader));
 			if(e instanceof JsonObject) {
 				JsonObject o = (JsonObject) e;
 				int schema = o.get("schema").getAsInt();
@@ -42,7 +47,10 @@ public record Install<T extends IDownloadable & IGame> (int schema, T installabl
 						JVMInstance jvm = gson.fromJson(o.get("jvm"), JVMInstance.class);
 						boolean isCoremodded = o.get("isCoremodded").getAsBoolean();
 						boolean visible = o.get("visible").getAsBoolean();
-						return new Install<T>(CURRENT_SCHEMA, (T)game, installPath, jvm, isCoremodded, visible);
+						long lastLaunched = o.has("lastLaunched")
+								? o.get("lastLaunched").getAsLong()
+								: Files.readAttributes(p, BasicFileAttributes.class).creationTime().toMillis();
+						return new Install<T>(CURRENT_SCHEMA, (T)game, installPath, jvm, isCoremodded, visible, lastLaunched);
 					}
 					else {
 						throw new UnsupportedOperationException("Don't know how to handle game: " + gameName);
@@ -70,6 +78,8 @@ public record Install<T extends IDownloadable & IGame> (int schema, T installabl
 		o.add("jvm", gson.toJsonTree(java));
 		o.addProperty("isCoremodded", isCoremodded);
 		o.addProperty("visible", visible);
+		// Milliseconds since the Unix epoch; initialized to the instance creation time.
+		o.addProperty("lastLaunched", lastLaunched);
 		return o.toString();
 	}
 	

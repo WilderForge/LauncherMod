@@ -1,31 +1,52 @@
 package com.wildermods.multimyth.ui;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Supplier;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.RuntimeSkin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Align;
 import com.worldwalkergames.legacy.context.ClientDataContext.Skins;
 import com.worldwalkergames.legacy.context.LegacyViewDependencies;
 import com.worldwalkergames.legacy.integations.SteamManager;
 import com.worldwalkergames.legacy.ui.Screen;
 import com.worldwalkergames.ui.NiceLabel;
+import com.worldwalkergames.ui.FancyImageButton;
 import com.worldwalkergames.ui.NiceButton;
 import com.worldwalkergames.ui.layout.CanvasGroup;
 import com.wildermods.multimyth.I18N;
 import com.wildermods.multimyth.Launcher;
+import com.wildermods.multimyth.internal.Install;
+import com.wildermods.multimyth.internal.BadInstall;
+import com.wildermods.multimyth.internal.IInstall;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
 import com.wildermods.wilderforge.api.mixins.v1.Cast;
 import com.wildermods.wilderforge.mixins.integrations.SteamManagerAccessor;
+import com.wildermods.wilderforge.launch.ui.element.TintedDrawable;
+import com.wildermods.wilderforge.launch.ui.element.UIColors;
 import com.wildermods.multimyth.mixin.SkinAccessor;
 
 public class LauncherSelectionScreen extends Screen {
 
+	private static final Logger LOGGER = LogManager.getLogger(LauncherSelectionScreen.class);
 	private final RuntimeSkin skin;
+	private Grid instanceGrid;
 	
 	protected LauncherSelectionScreen(LegacyViewDependencies dependencies) {
 		super(dependencies);
@@ -81,7 +102,7 @@ public class LauncherSelectionScreen extends Screen {
 		NiceButton newInstanceButton = new NiceButton(I18N.translate("multimyth.topPanel.newInstance"), skin); //TODO: fancy icon?
 		topTable.add(newInstanceButton);
 		newInstanceButton.clicked.add(this, () -> {
-			NewInstancePopup newInstance = new NewInstancePopup(dependencies);
+			NewInstancePopup newInstance = new NewInstancePopup(dependencies, this::refreshInstances);
 			dependencies.popUpManager.pushFront(newInstance, true);
 		});
 		//topTable.add(new NiceButton(I18N.translate("multimyth.topPanel.folders"), skin));
@@ -145,17 +166,62 @@ public class LauncherSelectionScreen extends Screen {
 		SkinAccessor skin = Cast.from(this.skin);
 		
 		Grid grid = new Grid((int)(128 * scaledSkin.getScale()));
-		//grid.setFillParent(true);
-		
-		for(int i = 0; i < 128; i++) {
-			grid.addActor(new NiceButton("" + i, this.skin));
-		}
+		instanceGrid = grid;
+		refreshInstances();
 		
 		AutoFocusingScrollPane pane = new AutoFocusingScrollPane(grid, Cast.from(skin));
 		pane.setScrollingDisabled(true, false);
 		pane.setFlickScroll(false);
 		return pane;
 	}
+
+	private void refreshInstances() {
+		instanceGrid.clearChildren();
+		if(Files.notExists(Launcher.SAVE_DIR)) return;
+
+		List<InstanceEntry> instances = new ArrayList<>();
+		try(var directories = Files.list(Launcher.SAVE_DIR)) {
+			for(Path directory : directories.peek(path -> LOGGER.info(
+					"Instance candidate: {}; directory={}",
+					path, Files.isDirectory(path)))
+					.filter(Files::isDirectory)
+					.toList()) {
+				Path metadata = directory.resolve("instance.mm");
+				try {
+					Install<?> instance = Install.fromFile(metadata);
+					if(instance.visible()) {
+						instances.add(new InstanceEntry(instance, instance.lastLaunched()));
+					}
+				}
+				catch(RuntimeException e) {
+					LOGGER.warn("Could not load instance {}", directory, e);
+					long created = 0;
+					try {
+						created = Files.readAttributes(directory, BasicFileAttributes.class).creationTime().toMillis();
+					}
+					catch(IOException | SecurityException timestampProblem) {
+						LOGGER.warn("Could not read creation time for {}", directory, timestampProblem);
+					}
+					instances.add(new InstanceEntry(new BadInstall(directory, e), created));
+				}
+			}
+		}
+		catch(IOException | java.io.UncheckedIOException e) {
+			LOGGER.error("Could not list instances in {}", Launcher.SAVE_DIR, e);
+		}
+		instances.sort(Comparator.comparingLong(InstanceEntry::lastLaunched)
+				.reversed().thenComparing(entry -> entry.install().name()));
+		for(InstanceEntry entry : instances) {
+			IInstall instance = entry.install();
+			NiceButton button = new NiceButton(instance.name(), this.skin);
+			instanceGrid.addActor(button);
+			if(instance instanceof BadInstall) {
+				button.setColor(UIColors.invalidColor);
+			}
+		}
+	}
+
+	private record InstanceEntry(IInstall install, long lastLaunched) {}
 	
 	private static final record ButtonEntry<T>(String textKey, Supplier<T> action) {}
 	
