@@ -71,8 +71,8 @@ jobs:
       - name: Debug PATH
         run: echo $PATH
 		
-	  - name: Prepare Game
-	    run: ./gradlew prepare
+      - name: Prepare Game
+        run: ./gradlew prepare
 
       - name: Setup Decompiled Workspace
         run: ./gradlew setupDecompWorkspace
