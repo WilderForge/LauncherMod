@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -20,13 +20,10 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.wildermods.multimyth.I18N;
 import com.wildermods.multimyth.Launcher;
-import com.wildermods.multimyth.internal.InstallException;
 import com.wildermods.multimyth.internal.Installer;
 import com.wildermods.multimyth.ui.element.Divider;
 import com.wildermods.multimyth.ui.element.Divider.Orientation;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
-import com.wildermods.thrixlvault.ChrysalisizedVault;
-import com.wildermods.thrixlvault.Vault;
 import com.wildermods.thrixlvault.exception.VersionParsingException;
 import com.wildermods.thrixlvault.utils.OS;
 import com.wildermods.thrixlvault.utils.version.Version;
@@ -47,7 +44,8 @@ public class NewInstancePopup extends PopUp {
 	WildermythManifest selectedVersion = null;
 	TextField nameField = null;
 	NiceButton confirmButton = null;
-	volatile Throwable downloadProblem = null;
+	private Thread installThread;
+	private boolean installCancelled;
 	Skin skin;
 	DialogFrame frame;
 	Table masterTable;
@@ -265,7 +263,7 @@ public class NewInstancePopup extends PopUp {
 	
 	private void updateButtons() {
 		if(confirmButton != null) {
-			if(Files.exists(Launcher.SAVE_DIR.resolve(nameField.getText()))) {
+			if(installThread != null || Files.exists(Launcher.SAVE_DIR.resolve(nameField.getText()))) {
 				confirmButton.setDisabled(true);
 			}
 			else {
@@ -274,66 +272,58 @@ public class NewInstancePopup extends PopUp {
 		}
 	}
 	
-	public void create(Installer installer, Skin skin) {
+	public void create(Installer<?> installer, Skin skin) {
+		if(installThread != null) return;
 		if(selectedVersion == null) {
 			LOGGER.warn("No version selected?!");
 			return;
 		}
-		ChrysalisizedVault chrysalis;
-		
-		try {
-			if(!Vault.DEFAULT.hasChrysalis(selectedVersion)) {
-				AtomicReference<Thread> downloadThread = new AtomicReference<>(null);
-				MessageBoxDialog downloadingWindow = new MessageBoxDialog(true, dependencies);
-				downloadingWindow.setText(I18N.translate("multimyth.popup.downloading.title"), I18N.translate("multimyth.popup.downloading.text"));
-				downloadingWindow.setButtons(null, I18N.translate("multimyth.cancel"));
-				
-				downloadingWindow.setHandler(new IMessageBoxHandler() {
 
-					@Override
-					public boolean onAffirmative() {
-						throw new AssertionError();
-					}
-
-					@Override
-					public boolean onNegative() {
-						return true; //MessageBoxDialog closes itself
-					}
-					
-				});
-				
-				//might have to set popups to not go away if something else is clicked
-				
-				dependencies.popUpManager.pushFront(downloadingWindow, true);
-				
-				downloadThread.set(
-					new Thread(() -> {
-						try {
-							installer.install();
-						}
-						catch(Throwable t) {
-							downloadProblem = t;
-						}
-						finally {
-							dependencies.popUpManager.removePopUp(downloadingWindow);
-							downloadFinish(skin);
-						}
-					}
-				));
-
-				downloadThread.get().start();
+		installCancelled = false;
+		MessageBoxDialog downloadingWindow = new MessageBoxDialog(true, dependencies);
+		downloadingWindow.setText(I18N.translate("multimyth.popup.downloading.title", selectedVersion.gameName(), selectedVersion.version()), I18N.translate("multimyth.popup.downloading.text"));
+		downloadingWindow.setButtons(null, I18N.translate("multimyth.cancel"));
+		downloadingWindow.setHandler(new IMessageBoxHandler() {
+			@Override
+			public boolean onAffirmative() {
+				throw new AssertionError();
 			}
-			
-			else {
+
+			@Override
+			public boolean onNegative() {
+				if(installThread != null) {
+					installCancelled = true;
+					installThread.interrupt();
+				}
+				// Keep the progress dialog open until the worker has actually stopped.
+				return false;
+			}
+		});
+
+		installThread = new Thread(() -> {
+			Throwable problem = null;
+			try {
 				installer.install();
 			}
-		}
-		catch(InstallException e) {
-			e.printStackTrace(); //TODO: popup
-		}
+			catch(Throwable t) {
+				problem = t;
+				LOGGER.error("Instance installation failed", t);
+			}
+			final Throwable result = problem;
+			Gdx.app.postRunnable(() -> {
+				installThread = null;
+				dependencies.popUpManager.removePopUp(downloadingWindow);
+				downloadFinish(installCancelled ? null : result);
+			});
+		}, "multimyth-instance-installer");
+		updateButtons();
+		dependencies.popUpManager.removePopUp(this);
+		dependencies.popUpManager.pushFront(downloadingWindow, true);
+		installThread.start();
 	}
-	
-	private void downloadFinish(Skin skin) {
+
+	private void downloadFinish(Throwable downloadProblem) {
+		updateButtons();
 		dependencies.popUpManager.pushFront(this, true);
 		if(downloadProblem != null) {
 			MessageBoxDialog dialog = new MessageBoxDialog(true, dependencies);
