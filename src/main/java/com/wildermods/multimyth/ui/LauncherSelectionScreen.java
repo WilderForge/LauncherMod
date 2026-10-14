@@ -13,20 +13,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.RuntimeSkin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Align;
 import com.worldwalkergames.legacy.context.ClientDataContext.Skins;
 import com.worldwalkergames.legacy.context.LegacyViewDependencies;
 import com.worldwalkergames.legacy.integations.SteamManager;
 import com.worldwalkergames.legacy.ui.Screen;
 import com.worldwalkergames.ui.NiceLabel;
-import com.worldwalkergames.ui.FancyImageButton;
 import com.worldwalkergames.ui.NiceButton;
 import com.worldwalkergames.ui.layout.CanvasGroup;
 import com.wildermods.multimyth.I18N;
@@ -38,7 +34,6 @@ import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
 import com.wildermods.wilderforge.api.mixins.v1.Cast;
 import com.wildermods.wilderforge.mixins.integrations.SteamManagerAccessor;
-import com.wildermods.wilderforge.launch.ui.element.TintedDrawable;
 import com.wildermods.wilderforge.launch.ui.element.UIColors;
 import com.wildermods.multimyth.mixin.SkinAccessor;
 
