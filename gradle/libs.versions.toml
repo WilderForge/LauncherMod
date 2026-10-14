@@ -1,23 +1,21 @@
 [versions]
-asm_version = "9.10.1"
+asm_version = "9.11"
 commons_io_version = "2.22.0"
 fabric_loader_version = "0.18.4+WilderForge.0.4.0+WilderForge"
-fontbox_version = "3.0.7"
-freetype_version="1.14.1"
+fontbox_version = "3.0.8"
+freetype_version="1.14.2"
 gson_version = "2.14.0"
-junit_version = "6.0.3"
-junit_platform_suite_version = "6.0.3"
-log4j_version = "2.26.0"
-log4j_commons_bridge_version = "2.26.0"
+junit_version = "6.1.3"
+log4j_version = "2.26.1"
 maven_fetcher_version = "1.1.1-WilderForge.1.0.3"
-mixin_version = "0.17.3+mixin.0.8.7"
+mixin_version = "0.17.5+mixin.0.8.7"
 thrixlvault_version = "0.13.0.0"
 workspace_version = "8.0.0.0"
 wilderforge_version = "0.8.2.0"
-plexus_utils_version = "4.0.3"
-plexus_interpolation_version = "1.29"
-plexus_xml_version = "4.1.1"
-maven_core_version = "3.9.16"
+plexus_utils_version = "4.1.0"
+plexus_interpolation_version = "1.30.0"
+plexus_xml_version = "4.2.0"
+maven_core_version = "3.10.0"
 vineflower_version = "1.12.0"
 
 
@@ -36,10 +34,10 @@ freetype_platform = { module = "com.badlogicgames.gdx:gdx-freetype-platform", ve
 gson = { module = "com.google.code.gson:gson", version.ref = "gson_version"}
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit_version" }
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit_version" }
-junit-platform-suite = { module = "org.junit.platform:junit-platform-suite", version.ref = "junit_platform_suite_version" }
+junit-platform-suite = { module = "org.junit.platform:junit-platform-suite", version.ref = "junit_version" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j_version" }
 log4j_api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j_version" }
-log4j_commons_bridge = { module = "org.apache.logging.log4j:log4j-jcl", version.ref = "log4j_commons_bridge_version" }
+log4j_commons_bridge = { module = "org.apache.logging.log4j:log4j-jcl", version.ref = "log4j_version" }
 maven_fetcher = { module = "com.wildermods:maven-fetcher", version.ref = "maven_fetcher_version" }
 mixin = { module = "net.fabricmc:sponge-mixin", version.ref = "mixin_version" }
 thrixlvault = { module = "com.wildermods:thrixlvault", version.ref = "thrixlvault_version" }
