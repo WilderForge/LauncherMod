@@ -7,12 +7,15 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.RuntimeSkin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -22,6 +25,8 @@ import com.worldwalkergames.legacy.context.ClientDataContext.Skins;
 import com.worldwalkergames.legacy.context.LegacyViewDependencies;
 import com.worldwalkergames.legacy.integations.SteamManager;
 import com.worldwalkergames.legacy.ui.Screen;
+import com.worldwalkergames.legacy.ui.MessageBoxDialog;
+import com.worldwalkergames.legacy.ui.MessageBoxDialog.IMessageBoxHandler;
 import com.worldwalkergames.ui.NiceLabel;
 import com.worldwalkergames.ui.NiceButton;
 import com.worldwalkergames.ui.layout.CanvasGroup;
@@ -30,6 +35,7 @@ import com.wildermods.multimyth.Launcher;
 import com.wildermods.multimyth.internal.Install;
 import com.wildermods.multimyth.internal.BadInstall;
 import com.wildermods.multimyth.internal.IInstall;
+import com.wildermods.multimyth.internal.InstanceDeletion;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
 import com.wildermods.wilderforge.api.mixins.v1.Cast;
@@ -42,6 +48,11 @@ public class LauncherSelectionScreen extends Screen {
 	private static final Logger LOGGER = LogManager.getLogger(LauncherSelectionScreen.class);
 	private final RuntimeSkin skin;
 	private Grid instanceGrid;
+	private final Map<Path, NiceButton> instanceButtons = new LinkedHashMap<>();
+	private Path selectedInstance;
+	private NiceButton deleteButton;
+	private boolean deletingInstance;
+	private boolean deleteConfirmationOpen;
 	
 	protected LauncherSelectionScreen(LegacyViewDependencies dependencies) {
 		super(dependencies);
@@ -63,6 +74,7 @@ public class LauncherSelectionScreen extends Screen {
 	}
 	
 	private void build() {
+		deleteButton = null;
 		this.getGroup().clearChildren();
 		CanvasGroup canvasGroup = new CanvasGroup();
 		canvasGroup.setFillParent(true);
@@ -129,7 +141,10 @@ public class LauncherSelectionScreen extends Screen {
 		sidebarTable.row();
 		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.shortcut"), skin));
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.delete"), skin));
+		deleteButton = new NiceButton(I18N.translate("multimyth.delete"), skin);
+		deleteButton.clicked.add(this, this::confirmDeleteInstance);
+		sidebarTable.add(deleteButton);
+		updateInstanceSelection();
 		sidebarTable.row();
 		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.clone"), skin));
 		
@@ -172,7 +187,12 @@ public class LauncherSelectionScreen extends Screen {
 
 	private void refreshInstances() {
 		instanceGrid.clearChildren();
-		if(Files.notExists(Launcher.SAVE_DIR)) return;
+		instanceButtons.clear();
+		if(Files.notExists(Launcher.SAVE_DIR)) {
+			selectedInstance = null;
+			updateInstanceSelection();
+			return;
+		}
 
 		List<InstanceEntry> instances = new ArrayList<>();
 		try(var directories = Files.list(Launcher.SAVE_DIR)) {
@@ -209,11 +229,97 @@ public class LauncherSelectionScreen extends Screen {
 		for(InstanceEntry entry : instances) {
 			IInstall instance = entry.install();
 			NiceButton button = new NiceButton(instance.name(), this.skin);
+			Path path = (instance instanceof BadInstall bad ? bad.path() : instance.getRootDir())
+					.toAbsolutePath().normalize();
+			instanceButtons.put(path, button);
+			button.clicked.add(this, () -> {
+				if(deletingInstance) return;
+				selectedInstance = path;
+				updateInstanceSelection();
+			});
 			instanceGrid.addActor(button);
 			if(instance instanceof BadInstall) {
 				button.setColor(UIColors.invalidColor);
 			}
 		}
+		if(!instanceButtons.containsKey(selectedInstance)) selectedInstance = null;
+		updateInstanceSelection();
+	}
+
+	private void updateInstanceSelection() {
+		instanceButtons.forEach((path, button) -> button.getLabel().setText(
+				(path.equals(selectedInstance) ? "> " : "") + path.getFileName()));
+		if(deleteButton != null) {
+			deleteButton.setDisabled(selectedInstance == null || deletingInstance || deleteConfirmationOpen);
+		}
+	}
+
+	private void confirmDeleteInstance() {
+		if(selectedInstance == null || deletingInstance || deleteConfirmationOpen) return;
+		Path target = selectedInstance;
+		MessageBoxDialog confirmation = new MessageBoxDialog(true, dependencies);
+		confirmation.setText(I18N.translate("multimyth.instance.popup.delete.title"),
+				I18N.translate("multimyth.instance.popup.delete.dialog", target.getFileName().toString()));
+		confirmation.setButtons(I18N.translate("multimyth.delete"), I18N.translate("multimyth.cancel"));
+		confirmation.setHandler(new IMessageBoxHandler() {
+			@Override
+			public boolean onAffirmative() {
+				deleteConfirmationOpen = false;
+				deleteInstance(target);
+				return true;
+			}
+
+			@Override
+			public boolean onNegative() {
+				deleteConfirmationOpen = false;
+				updateInstanceSelection();
+				return true;
+			}
+		});
+		deleteConfirmationOpen = true;
+		updateInstanceSelection();
+		dependencies.popUpManager.pushFront(confirmation, true);
+	}
+
+	private void deleteInstance(Path target) {
+		deletingInstance = true;
+		updateInstanceSelection();
+		MessageBoxDialog progress = new MessageBoxDialog(true, dependencies);
+		progress.setText(I18N.translate("multimyth.instance.popup.delete.progress.title"),
+				I18N.translate("multimyth.instance.popup.delete.progress.dialog", target.getFileName().toString()));
+		progress.setButtons(null, null);
+		dependencies.popUpManager.pushFront(progress, true);
+		new Thread(() -> {
+			Exception problem = null;
+			try {
+				InstanceDeletion.delete(Launcher.SAVE_DIR, target);
+			}
+			catch(Exception e) {
+				problem = e;
+				LOGGER.error("Could not delete instance {}", target, e);
+			}
+			final Exception result = problem;
+			Gdx.app.postRunnable(() -> {
+				deletingInstance = false;
+				dependencies.popUpManager.removePopUp(progress);
+				if(result == null) selectedInstance = null;
+				refreshInstances();
+				if(result != null) {
+					MessageBoxDialog error = new MessageBoxDialog(true, dependencies);
+					error.setText(I18N.translate("multimyth.error.delete.fail", target.getFileName().toString()),
+							I18N.translate("multimyth.instance.popup.delete.error.dialog", result.getMessage()));
+					error.setButtons(I18N.translate("multimyth.ok"), null);
+					error.setHandler(new IMessageBoxHandler() {
+						@Override
+						public boolean onAffirmative() { return true; }
+
+						@Override
+						public boolean onNegative() { return true; }
+					});
+					dependencies.popUpManager.pushFront(error, true);
+				}
+			});
+		}, "multimyth-instance-deleter").start();
 	}
 
 	private record InstanceEntry(IInstall install, long lastLaunched) {}
