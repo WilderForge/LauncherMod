@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,6 +31,7 @@ import com.worldwalkergames.legacy.ui.MessageBoxDialog.IMessageBoxHandler;
 import com.worldwalkergames.ui.NiceLabel;
 import com.worldwalkergames.ui.NiceButton;
 import com.worldwalkergames.ui.layout.CanvasGroup;
+import com.worldwalkergames.util.OSUtil;
 import com.wildermods.multimyth.I18N;
 import com.wildermods.multimyth.Launcher;
 import com.wildermods.multimyth.internal.Install;
@@ -51,7 +53,16 @@ public class LauncherSelectionScreen extends Screen {
 	private Grid instanceGrid;
 	private final Map<Path, NiceButton> instanceButtons = new LinkedHashMap<>();
 	private IInstall selectedInstance = NoInstall.INSTANCE;
+	private NiceButton launchButton;
+	private NiceButton editButton;
+	private NiceButton viewModsButton;
+	private NiceButton screenshotFolderButton;
+	private NiceButton installFolderButton;
+	private NiceButton configFolderButton;
+	private NiceButton modFolderButton;
+	private NiceButton createShortcutButton;
 	private NiceButton deleteButton;
+	private NiceButton cloneButton;
 	private boolean deletingInstance;
 	private boolean deleteConfirmationOpen;
 	
@@ -75,7 +86,6 @@ public class LauncherSelectionScreen extends Screen {
 	}
 	
 	private void build() {
-		deleteButton = null;
 		this.getGroup().clearChildren();
 		CanvasGroup canvasGroup = new CanvasGroup();
 		canvasGroup.setFillParent(true);
@@ -123,31 +133,46 @@ public class LauncherSelectionScreen extends Screen {
 			SteamManagerAccessor manager = Cast.from(new SteamManager());
 			steamLabel.setText(I18N.translate("multimyth.topPanel.steam.loggedIn", manager.getSteamFriends().getPersonaName()));
 		}
-
+		
+		launchButton = new NiceButton(I18N.translate("multimyth.sidePanel.launch"), skin);
+		editButton = new NiceButton(I18N.translate("multimyth.sidePanel.edit"), skin);
+		viewModsButton = new NiceButton(I18N.translate("multimyth.sidePanel.viewMods"), skin);
+		screenshotFolderButton = new NiceButton(I18N.translate("multimyth.sidePanel.screenshots"), skin);
+		screenshotFolderButton.clicked.add(this, () -> open(selectedInstance, Path.of("screenshots"), true));
+		installFolderButton = new NiceButton(I18N.translate("multimyth.sidePanel.installFolder"), skin);
+		installFolderButton.clicked.add(this, () -> open(selectedInstance, Path.of(""), false));
+		configFolderButton = new NiceButton(I18N.translate("multimyth.sidePanel.configFolder"), skin);
+		modFolderButton = new NiceButton(I18N.translate("multimyth.sidePanel.modFolder"), skin);
+		modFolderButton.clicked.add(this, () -> open(selectedInstance, Path.of("mods"), false));
+		createShortcutButton = new NiceButton(I18N.translate("multimyth.sidePanel.shortcut"), skin);
 	
-		sidebarTable.defaults().fillX();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.launch"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.edit"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.viewMods"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.screenshots"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.installFolder"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.configFolder"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.modFolder"), skin));
-		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.shortcut"), skin));
-		sidebarTable.row();
 		deleteButton = new NiceButton(I18N.translate("multimyth.delete"), skin);
 		deleteButton.clicked.add(this, this::confirmDeleteInstance);
-		sidebarTable.add(deleteButton);
-		updateInstanceSelection();
+		
+		cloneButton = new NiceButton(I18N.translate("multimyth.sidePanel.clone"), skin);
+		
+		sidebarTable.defaults().fillX();
+		sidebarTable.add(launchButton);
 		sidebarTable.row();
-		sidebarTable.add(new NiceButton(I18N.translate("multimyth.sidePanel.clone"), skin));
+		sidebarTable.add(editButton);
+		sidebarTable.row();
+		sidebarTable.add(viewModsButton);
+		sidebarTable.row();
+		sidebarTable.add(screenshotFolderButton);
+		sidebarTable.row();
+		sidebarTable.add(installFolderButton);
+		sidebarTable.row();
+		sidebarTable.add(configFolderButton);
+		sidebarTable.row();
+		sidebarTable.add(modFolderButton);
+		sidebarTable.row();
+		sidebarTable.add(createShortcutButton);
+		sidebarTable.row();
+		sidebarTable.add(deleteButton);
+		sidebarTable.row();
+		sidebarTable.add(cloneButton);
+		
+		updateInstanceSelection();
 		
 		String suffix;
 		NiceLabel infoLabel;
@@ -254,6 +279,25 @@ public class LauncherSelectionScreen extends Screen {
 				(path.equals(selectedInstance.getRootDir()) ? "> " : "") + path.getFileName()));
 		if(deleteButton != null) {
 			deleteButton.setDisabled(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen);
+		}
+	}
+	
+	private void open(IInstall install, Path path, boolean createFolder) {
+		if(selectedInstance != NoInstall.INSTANCE) {
+			Path toOpen = install.getRootDir().resolve(path).toAbsolutePath().normalize();
+			if(!Files.exists(toOpen) && createFolder) {
+				try {
+					Files.createDirectories(toOpen);
+				} catch (IOException e) {
+					LOGGER.catching(Level.WARN, e);
+				}
+			}
+			if(Files.exists(toOpen)) {
+				OSUtil.showFile(toOpen.toString());
+			}
+			else {
+				LOGGER.warn("Attempted to open file/folder that doesn't exist: " + toOpen);
+			}
 		}
 	}
 
