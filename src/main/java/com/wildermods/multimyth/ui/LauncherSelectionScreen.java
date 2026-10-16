@@ -36,6 +36,7 @@ import com.wildermods.multimyth.internal.Install;
 import com.wildermods.multimyth.internal.BadInstall;
 import com.wildermods.multimyth.internal.IInstall;
 import com.wildermods.multimyth.internal.InstanceDeletion;
+import com.wildermods.multimyth.internal.NoInstall;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
 import com.wildermods.wilderforge.api.mixins.v1.Cast;
@@ -49,7 +50,7 @@ public class LauncherSelectionScreen extends Screen {
 	private final RuntimeSkin skin;
 	private Grid instanceGrid;
 	private final Map<Path, NiceButton> instanceButtons = new LinkedHashMap<>();
-	private IInstall selectedInstance;
+	private IInstall selectedInstance = NoInstall.INSTANCE;
 	private NiceButton deleteButton;
 	private boolean deletingInstance;
 	private boolean deleteConfirmationOpen;
@@ -189,7 +190,7 @@ public class LauncherSelectionScreen extends Screen {
 		instanceGrid.clearChildren();
 		instanceButtons.clear();
 		if(Files.notExists(Launcher.SAVE_DIR)) {
-			selectedInstance = null;
+			selectedInstance = NoInstall.INSTANCE;
 			updateInstanceSelection();
 			return;
 		}
@@ -242,22 +243,22 @@ public class LauncherSelectionScreen extends Screen {
 				button.setColor(UIColors.invalidColor);
 			}
 		}
-		if(selectedInstance != null && !instanceButtons.containsKey(selectedInstance.getRootDir())) {
-			selectedInstance = null;
+		if(!instanceButtons.containsKey(selectedInstance.getRootDir())) {
+			selectedInstance = NoInstall.INSTANCE;
 		}
 		updateInstanceSelection();
 	}
 
 	private void updateInstanceSelection() {
 		instanceButtons.forEach((path, button) -> button.getLabel().setText(
-				(selectedInstance != null && path.equals(selectedInstance.getRootDir()) ? "> " : "") + path.getFileName()));
+				(path.equals(selectedInstance.getRootDir()) ? "> " : "") + path.getFileName()));
 		if(deleteButton != null) {
-			deleteButton.setDisabled(selectedInstance == null || deletingInstance || deleteConfirmationOpen);
+			deleteButton.setDisabled(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen);
 		}
 	}
 
 	private void confirmDeleteInstance() {
-		if(selectedInstance == null || deletingInstance || deleteConfirmationOpen) return;
+		if(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen) return;
 		IInstall target = selectedInstance;
 		MessageBoxDialog confirmation = new MessageBoxDialog(true, dependencies);
 		confirmation.setText(I18N.translate("multimyth.instance.popup.delete.title"),
@@ -304,7 +305,9 @@ public class LauncherSelectionScreen extends Screen {
 			Gdx.app.postRunnable(() -> {
 				deletingInstance = false;
 				dependencies.popUpManager.removePopUp(progress);
-				if(result == null) selectedInstance = null;
+				if(result == null) {
+					selectedInstance = NoInstall.INSTANCE;
+				}
 				refreshInstances();
 				if(result != null) {
 					MessageBoxDialog error = new MessageBoxDialog(true, dependencies);
