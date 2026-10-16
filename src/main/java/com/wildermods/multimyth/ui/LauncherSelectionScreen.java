@@ -49,7 +49,7 @@ public class LauncherSelectionScreen extends Screen {
 	private final RuntimeSkin skin;
 	private Grid instanceGrid;
 	private final Map<Path, NiceButton> instanceButtons = new LinkedHashMap<>();
-	private Path selectedInstance;
+	private IInstall selectedInstance;
 	private NiceButton deleteButton;
 	private boolean deletingInstance;
 	private boolean deleteConfirmationOpen;
@@ -234,7 +234,7 @@ public class LauncherSelectionScreen extends Screen {
 			instanceButtons.put(path, button);
 			button.clicked.add(this, () -> {
 				if(deletingInstance) return;
-				selectedInstance = path;
+				selectedInstance = instance;
 				updateInstanceSelection();
 			});
 			instanceGrid.addActor(button);
@@ -242,13 +242,15 @@ public class LauncherSelectionScreen extends Screen {
 				button.setColor(UIColors.invalidColor);
 			}
 		}
-		if(!instanceButtons.containsKey(selectedInstance)) selectedInstance = null;
+		if(selectedInstance != null && !instanceButtons.containsKey(selectedInstance.getRootDir())) {
+			selectedInstance = null;
+		}
 		updateInstanceSelection();
 	}
 
 	private void updateInstanceSelection() {
 		instanceButtons.forEach((path, button) -> button.getLabel().setText(
-				(path.equals(selectedInstance) ? "> " : "") + path.getFileName()));
+				(selectedInstance != null && path.equals(selectedInstance.getRootDir()) ? "> " : "") + path.getFileName()));
 		if(deleteButton != null) {
 			deleteButton.setDisabled(selectedInstance == null || deletingInstance || deleteConfirmationOpen);
 		}
@@ -256,10 +258,10 @@ public class LauncherSelectionScreen extends Screen {
 
 	private void confirmDeleteInstance() {
 		if(selectedInstance == null || deletingInstance || deleteConfirmationOpen) return;
-		Path target = selectedInstance;
+		IInstall target = selectedInstance;
 		MessageBoxDialog confirmation = new MessageBoxDialog(true, dependencies);
 		confirmation.setText(I18N.translate("multimyth.instance.popup.delete.title"),
-				I18N.translate("multimyth.instance.popup.delete.dialog", target.getFileName().toString()));
+				I18N.translate("multimyth.instance.popup.delete.dialog", target.name().toString()));
 		confirmation.setButtons(I18N.translate("multimyth.delete"), I18N.translate("multimyth.cancel"));
 		confirmation.setHandler(new IMessageBoxHandler() {
 			@Override
@@ -281,12 +283,12 @@ public class LauncherSelectionScreen extends Screen {
 		dependencies.popUpManager.pushFront(confirmation, true);
 	}
 
-	private void deleteInstance(Path target) {
+	private void deleteInstance(IInstall target) {
 		deletingInstance = true;
 		updateInstanceSelection();
 		MessageBoxDialog progress = new MessageBoxDialog(true, dependencies);
 		progress.setText(I18N.translate("multimyth.instance.popup.delete.progress.title"),
-				I18N.translate("multimyth.instance.popup.delete.progress.dialog", target.getFileName().toString()));
+				I18N.translate("multimyth.instance.popup.delete.progress.dialog", target.name()));
 		progress.setButtons(null, null);
 		dependencies.popUpManager.pushFront(progress, true);
 		new Thread(() -> {
@@ -306,7 +308,7 @@ public class LauncherSelectionScreen extends Screen {
 				refreshInstances();
 				if(result != null) {
 					MessageBoxDialog error = new MessageBoxDialog(true, dependencies);
-					error.setText(I18N.translate("multimyth.error.delete.fail", target.getFileName().toString()),
+					error.setText(I18N.translate("multimyth.error.delete.fail", target.name()),
 							I18N.translate("multimyth.instance.popup.delete.error.dialog", result.getMessage()));
 					error.setButtons(I18N.translate("multimyth.ok"), null);
 					error.setHandler(new IMessageBoxHandler() {

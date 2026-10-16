@@ -11,9 +11,9 @@ public final class InstanceDeletion {
 
 	private InstanceDeletion() {}
 
-	public static void delete(Path instancesDirectory, Path instanceDirectory) throws IOException {
+	public static void delete(Path instancesDirectory, IInstall instance) throws IOException {
 		Path root = instancesDirectory.toAbsolutePath().normalize();
-		Path target = instanceDirectory.toAbsolutePath().normalize();
+		Path target = instance.getRootDir().toAbsolutePath().normalize();
 		if(!root.equals(target.getParent())) {
 			throw new IOException("Instance must be a direct child of " + root + ": " + target);
 		}

@@ -32,8 +32,7 @@ public record BadInstall(Path path, Throwable exception) implements IInstall {
 
 	@Override
 	public Path getRootDir() {
-		// TODO Auto-generated method stub
-		return null;
+		return path;
 	}
 
 
