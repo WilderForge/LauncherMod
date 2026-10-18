@@ -38,6 +38,8 @@ import com.wildermods.multimyth.internal.Install;
 import com.wildermods.multimyth.internal.BadInstall;
 import com.wildermods.multimyth.internal.IInstall;
 import com.wildermods.multimyth.internal.InstanceDeletion;
+import com.wildermods.multimyth.internal.DiscoveryLaunch;
+import com.wildermods.multimyth.internal.OS;
 import com.wildermods.multimyth.internal.NoInstall;
 import com.wildermods.multimyth.ui.element.AutoFocusingScrollPane;
 import com.wildermods.multimyth.ui.element.Grid;
@@ -65,6 +67,8 @@ public class LauncherSelectionScreen extends Screen {
 	private NiceButton cloneButton;
 	private boolean deletingInstance;
 	private boolean deleteConfirmationOpen;
+	private boolean discoveringInstance;
+	private DiscoveryLaunch.Result discoveryResult;
 	
 	protected LauncherSelectionScreen(LegacyViewDependencies dependencies) {
 		super(dependencies);
@@ -135,6 +139,7 @@ public class LauncherSelectionScreen extends Screen {
 		}
 		
 		launchButton = new NiceButton(I18N.translate("multimyth.sidePanel.launch"), skin);
+		launchButton.clicked.add(this, this::discoverInstance);
 		editButton = new NiceButton(I18N.translate("multimyth.sidePanel.edit"), skin);
 		viewModsButton = new NiceButton(I18N.translate("multimyth.sidePanel.viewMods"), skin);
 		screenshotFolderButton = new NiceButton(I18N.translate("multimyth.sidePanel.screenshots"), skin);
@@ -259,7 +264,7 @@ public class LauncherSelectionScreen extends Screen {
 					.toAbsolutePath().normalize();
 			instanceButtons.put(path, button);
 			button.clicked.add(this, () -> {
-				if(deletingInstance) return;
+				if(deletingInstance || discoveringInstance) return;
 				selectedInstance = instance;
 				updateInstanceSelection();
 			});
@@ -278,8 +283,63 @@ public class LauncherSelectionScreen extends Screen {
 		instanceButtons.forEach((path, button) -> button.getLabel().setText(
 				(path.equals(selectedInstance.getRootDir()) ? "> " : "") + path.getFileName()));
 		if(deleteButton != null) {
-			deleteButton.setDisabled(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen);
+			deleteButton.setDisabled(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen || discoveringInstance);
 		}
+		if(launchButton != null) {
+			launchButton.setDisabled(!(selectedInstance instanceof Install<?> install) || !install.isCoremodded()
+					|| deletingInstance || deleteConfirmationOpen || discoveringInstance);
+		}
+	}
+
+	private void discoverInstance() {
+		if(!(selectedInstance instanceof Install<?> install) || !install.isCoremodded()
+				|| deletingInstance || deleteConfirmationOpen || discoveringInstance) return;
+		discoveringInstance = true;
+		discoveryResult = null;
+		updateInstanceSelection();
+		MessageBoxDialog progress = new MessageBoxDialog(true, dependencies);
+		progress.setText(I18N.translate("multimyth.instance.discovery.title"),
+				I18N.translate("multimyth.instance.discovery.progress", install.name()));
+		progress.setButtons(null, null);
+		dependencies.popUpManager.pushFront(progress, true);
+		new Thread(() -> {
+			DiscoveryLaunch.Result result = null;
+			Exception problem = null;
+			try {
+				Path java = install.java().getJVMLocation();
+				if(Files.isDirectory(java)) {
+					java = java.resolve("bin").resolve("java" + OS.getOS().applicationExtension);
+				}
+				result = DiscoveryLaunch.run(java, install.getRootDir());
+				LOGGER.info("Discovery for {} finished: response={}, log={}", install.name(), result.response(), result.log());
+			}
+			catch(Exception e) {
+				problem = e;
+				LOGGER.error("Discovery failed for {}", install.name(), e);
+				if(e instanceof InterruptedException) Thread.currentThread().interrupt();
+			}
+			final DiscoveryLaunch.Result completed = result;
+			final Exception failure = problem;
+			Gdx.app.postRunnable(() -> {
+				discoveringInstance = false;
+				discoveryResult = completed;
+				dependencies.popUpManager.removePopUp(progress);
+				updateInstanceSelection();
+				MessageBoxDialog message = new MessageBoxDialog(true, dependencies);
+				message.setText(I18N.translate(failure == null ? "multimyth.instance.discovery.complete" : "multimyth.instance.discovery.failed"),
+						failure == null ? I18N.translate("multimyth.instance.discovery.complete.dialog", install.name())
+								: I18N.translate("multimyth.instance.discovery.failed.dialog", install.name(), failure.getMessage()));
+				message.setButtons(I18N.translate("multimyth.ok"), null);
+				message.setHandler(new IMessageBoxHandler() {
+					@Override
+					public boolean onAffirmative() { return true; }
+
+					@Override
+					public boolean onNegative() { return true; }
+				});
+				dependencies.popUpManager.pushFront(message, true);
+			});
+		}, "multimyth-discovery-launcher").start();
 	}
 	
 	private void open(IInstall install, Path path, boolean createFolder) {
@@ -302,7 +362,7 @@ public class LauncherSelectionScreen extends Screen {
 	}
 
 	private void confirmDeleteInstance() {
-		if(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen) return;
+		if(selectedInstance == NoInstall.INSTANCE || deletingInstance || deleteConfirmationOpen || discoveringInstance) return;
 		IInstall target = selectedInstance;
 		MessageBoxDialog confirmation = new MessageBoxDialog(true, dependencies);
 		confirmation.setText(I18N.translate("multimyth.instance.popup.delete.title"),
