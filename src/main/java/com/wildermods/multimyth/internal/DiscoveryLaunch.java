@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,8 @@ public final class DiscoveryLaunch {
 				"-Dfabric.socketId=" + id,
 				"-Dfabric.socketTimeout=" + TIMEOUT_SECONDS,
 				"-Dfabric.websocketDiscovery=true",
+				"-Dfabric.log.file=logs/discovery-loader.log",
+				"-Dlog4j2.configurationFile=" + directory.resolve(".multimyth/discovery-log4j2.xml").toUri(),
 				"-Xlog:class+load=info",
 				"-cp", directory.resolve("*") + File.pathSeparator + directory.resolve("fabric").resolve("*"),
 				"net.fabricmc.loader.impl.launch.knot.KnotRemote$Client");
@@ -41,6 +44,12 @@ public final class DiscoveryLaunch {
 		Path directory = root.toAbsolutePath().normalize();
 		Path logs = directory.resolve("logs");
 		Files.createDirectories(logs);
+		Path loggingConfiguration = directory.resolve(".multimyth/discovery-log4j2.xml");
+		Files.createDirectories(loggingConfiguration.getParent());
+		try(InputStream configuration = DiscoveryLaunch.class.getResourceAsStream("/discovery-log4j2.xml")) {
+			if(configuration == null) throw new IOException("Missing discovery logging configuration");
+			Files.copy(configuration, loggingConfiguration, StandardCopyOption.REPLACE_EXISTING);
+		}
 		String id = UUID.randomUUID().toString();
 		Path log = logs.resolve("discovery-" + id + ".log");
 		Path response = logs.resolve("discovery-" + id + ".bin");
